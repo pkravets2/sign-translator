@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign Translator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --ink: #0a0a0a;
+    --muted: #9a9a9a;
+    --green: #7CFC00;
+    --box: #000000;
+    --box-ink: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    height: 100vh;
+    overflow: hidden;
+  }
+  .col { padding: 2vh 32px; display: flex; flex-direction: column; gap: 1.4vh; min-height: 0; }
+  .left { border-right: 2px solid var(--ink); }
+
+  /* camera */
+  .cam {
+    position: relative; width: 100%; flex: 1; min-height: 120px;
+    background: #f3f3f3; border-radius: 6px; overflow: hidden;
+  }
+  .cam video, .cam canvas {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; transform: scaleX(-1);
+  }
+  .cam .status {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    text-align: center; padding: 20px; font-size: 14px; color: #555;
+  }
+  .cam .status button {
+    margin-top: 12px; font: inherit; font-weight: 700; padding: 10px 18px;
+    background: var(--box); color: var(--box-ink); border: 0; cursor: pointer;
+  }
+  .badge {
+    position: absolute; top: 10px; left: 10px; font-size: 11px; font-weight: 700;
+    background: rgba(0,0,0,.75); color: #fff; padding: 4px 8px; letter-spacing: .05em;
+  }
+
+  /* alphabet */
+  .alphabet {
+    display: grid; grid-template-columns: repeat(13, 1fr); gap: 4px;
+  }
+  .alphabet div {
+    border: 1px solid transparent; border-radius: 4px; text-align: center;
+    padding: 2px 0 1px; font-size: clamp(11px, 1.5vh, 14px); transition: background .1s, border-color .1s;
+  }
+  .alphabet img { display: block; width: 100%; height: clamp(22px, 4.2vh, 44px); object-fit: contain; margin-bottom: 2px; }
+  .alphabet div.on { background: var(--green); border-color: var(--ink); font-weight: 800; }
+
+  /* black boxes */
+  .box {
+    background: var(--box); color: var(--box-ink); text-align: center;
+    padding: 1.4vh 20px; display: flex; flex-direction: column; gap: 0.8vh;
+  }
+  .box h2 { margin: 0; font-size: clamp(14px, 2.2vh, 22px); font-weight: 800; letter-spacing: .06em; }
+  .current { font-size: clamp(18px, 3vh, 30px); font-weight: 800; }
+  .spelled { font-size: clamp(16px, 2.6vh, 26px); font-weight: 800; letter-spacing: .35em; }
+  .spelled .cursor { animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .hold { height: 4px; background: #333; }
+  .hold > i { display: block; height: 100%; width: 0; background: var(--green); }
+
+  .footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .controls button {
+    font: inherit; font-size: 12px; font-weight: 700; padding: 8px 12px;
+    background: var(--bg); color: var(--ink); border: 2px solid var(--ink); cursor: pointer;
+  }
+  .controls button:hover { background: var(--ink); color: var(--bg); }
+
+  /* right side */
+  .right { justify-content: space-between; }
+  .right .title { text-align: center; font-size: clamp(18px, 2.8vh, 28px); font-weight: 800; margin-top: 4vh; }
+  .translation {
+    flex: 1; display: flex; align-items: center; justify-content: center; text-align: center;
+    font-size: clamp(36px, min(8vw, 16vh), 150px); min-height: 0; overflow: hidden; font-weight: 400; line-height: 1.05; word-break: break-word;
+  }
+  .translation .live { color: var(--muted); }
+  .expr .line { font-size: clamp(16px, 2.6vh, 26px); }
+  .meters { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; font-size: 11px; }
+  .meters .bar { height: 4px; background: #333; margin-top: 4px; }
+  .meters .bar i { display: block; height: 100%; background: var(--green); width: 0; }
+  .help { font-size: 10px; color: var(--muted); text-align: right; line-height: 1.4; }
+
+  @media (max-width: 900px) {
+    body { grid-template-columns: 1fr; height: auto; overflow: auto; }
+    .cam { flex: none; aspect-ratio: 4 / 3; }
+    .footer { flex-direction: column; }
+    .help { text-align: center; }
+    .left { border-right: 0; border-bottom: 2px solid var(--ink); }
+    .col { padding: 16px; }
+    .right .title { margin-top: 10px; }
+    .alphabet { grid-template-columns: repeat(7, 1fr); }
+  }
+</style>
+</head>
+<body>
+  <section class="col left">
+    <div class="cam">
+      <video id="video" playsinline muted></video>
+      <canvas id="overlay"></canvas>
+      <div class="status" id="status">
+        <div>
+          <div>Camera is off. Hands and face are tracked locally in your browser.</div>
+          <button id="startBtn">Start camera</button>
+        </div>
+      </div>
+      <div class="badge" id="badge" hidden>TRACKING</div>
+    </div>
+
+    <div class="alphabet" id="alphabet"></div>
+
+    <div class="box">
+      <h2>READING INPUT</h2>
+      <div class="current" id="current">[ &nbsp; ]</div>
+      <div class="hold"><i id="holdBar"></i></div>
+      <div class="spelled" id="spelled"><span class="cursor">_</span></div>
+    </div>
+
+    <div class="footer">
+    <div class="controls">
+      <button id="spaceBtn">SPACE</button>
+      <button id="backBtn">DELETE</button>
+      <button id="clearBtn">CLEAR</button>
+      <button id="speakBtn">SPEAK</button>
+    </div>
+    <div class="help">
+      Hold a letter ~0.8s to type it. To repeat a letter (LL), relax your hand or drop it briefly.<br>
+      Lower your hand for 1.5s to finish the word. Keys: Space, Backspace, Esc.
+    </div>
+    </div>
+  </section>
+
+  <section class="col right">
+    <div class="title">Translation</div>
+    <div class="translation" id="translation"><span class="live">&nbsp;</span></div>
+    <div class="box expr">
+      <h2>EXPRESSION</h2>
+      <div class="line" id="exprLine">[ waiting for face ]</div>
+      <div class="meters" id="meters"></div>
+    </div>
+  </section>
+
+<script type="module">
+import { FilesetResolver, HandLandmarker, FaceLandmarker, DrawingUtils }
+  from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
+
+const WASM = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
+const HAND_MODEL = "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task";
+const FACE_MODEL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
+
+const HOLD_MS = 800;        // how long a letter must be held to be typed
+const WORD_GAP_MS = 1500;   // no hand for this long finishes the word
+const MOTION_LETTERS = { J: "move I", Z: "trace Z" };
+
+const $ = id => document.getElementById(id);
+const video = $("video"), canvas = $("overlay"), ctx = canvas.getContext("2d");
+
+// ---------- alphabet strip ----------
+const HINTS = {
+  A:"fist, thumb side", B:"flat hand", C:"curve", D:"index up", E:"curled", F:"OK sign",
+  G:"point side", H:"2 fingers side", I:"pinky", J:"move I", K:"V + thumb", L:"L shape",
+  M:"thumb under 3", N:"thumb under 2", O:"circle", P:"K down", Q:"G down", R:"cross",
+  S:"fist, thumb front", T:"thumb in", U:"2 up", V:"peace", W:"3 up", X:"hook",
+  Y:"thumb+pinky", Z:"trace Z",
+};
+// Public-domain ASL handshapes (wpclipart via Wikimedia Commons). Local copy first, Commons as fallback.
+const COMMONS = {
+  A:"2/27", B:"1/18", C:"e/e3", D:"0/06", E:"c/cd", F:"8/8f", G:"d/d9", H:"9/97", I:"1/10",
+  J:"b/b1", K:"9/97", L:"d/d2", M:"c/c4", N:"e/e6", O:"e/e0", P:"0/08", Q:"3/34", R:"3/3d",
+  S:"3/3f", T:"1/13", U:"7/7c", V:"c/ca", W:"8/83", X:"b/b7", Y:"1/1d", Z:"0/0a",
+};
+const tiles = {};
+for (const ch of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") {
+  const el = document.createElement("div");
+  const remote = `https://upload.wikimedia.org/wikipedia/commons/${COMMONS[ch]}/Sign_language_${ch}.svg`;
+  el.innerHTML = `<img src="signs/${ch}.svg" alt="ASL ${ch}">${ch}${ch.toLowerCase()}`;
+  el.querySelector("img").onerror = e => { e.target.onerror = null; e.target.src = remote; };
+  el.title = HINTS[ch];
+  $("alphabet").appendChild(el);
+  tiles[ch] = el;
+}
+
+// ---------- text state ----------
+const state = {
+  words: [],          // [{text, expr}]
+  word: "",
+  exprCounts: {},     // expression tally for the word being spelled
+};
+
+function render() {
+  const spelled = state.word.split("").join(" ");
+  $("spelled").innerHTML = `${spelled}${spelled ? " " : ""}<span class="cursor">_</span>`;
+  const done = state.words.map(w => w.text).join(" ");
+  $("translation").innerHTML =
+    (done ? `${done} ` : "") + `<span class="live">${state.word || (done ? "" : "&nbsp;")}</span>`;
+}
+
+function typeLetter(ch) {
+  state.word += ch;
+  render();
+}
+
+function finishWord() {
+  if (!state.word) return;
+  const expr = dominant(state.exprCounts) || currentExpr;
+  state.words.push({ text: state.word, expr });
+  state.word = "";
+  state.exprCounts = {};
+  render();
+}
+
+$("spaceBtn").onclick = finishWord;
+$("backBtn").onclick = () => {
+  if (state.word) state.word = state.word.slice(0, -1);
+  else if (state.words.length) state.word = state.words.pop().text;
+  render();
+};
+$("clearBtn").onclick = () => { state.words = []; state.word = ""; state.exprCounts = {}; render(); };
+$("speakBtn").onclick = () => {
+  const text = [...state.words.map(w => w.text), state.word].join(" ").trim();
+  if (!text) return;
+  const u = new SpeechSynthesisUtterance(text.toLowerCase());
+  const tone = { happy: [1.3, 1.1], sad: [0.8, 0.85], angry: [0.9, 1.15], surprised: [1.4, 1.1] }[currentExpr];
+  if (tone) { u.pitch = tone[0]; u.rate = tone[1]; }
+  speechSynthesis.speak(u);
+};
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "BUTTON") return;
+  if (e.code === "Space") { e.preventDefault(); finishWord(); }
+  if (e.key === "Backspace") $("backBtn").click();
+  if (e.key === "Escape") $("clearBtn").click();
+});
+
+// ---------- hand geometry + letter classifier ----------
+// Landmarks: 0 wrist, thumb 1-4, index 5-8, middle 9-12, ring 13-16, pinky 17-20.
+const FINGERS = [[5,6,7,8],[9,10,11,12],[13,14,15,16],[17,18,19,20]];
+
+function classify(lm, W, H) {
+  const P = lm.map(p => ({ x: p.x * W, y: p.y * H }));
+  const d = (a, b) => Math.hypot(P[a].x - P[b].x, P[a].y - P[b].y);
+  const palm = d(0, 9) || 1;
+
+  const straightness = ([m, p, q, t]) => d(m, t) / (d(m, p) + d(p, q) + d(q, t));
+  const ext = FINGERS.map(f => straightness(f) > 0.82 && d(f[3], 0) > d(f[1], 0) * 1.05);
+  const curled = FINGERS.map(f => d(f[3], 0) < d(f[1], 0));
+  const [I, M, R, Pk] = ext;
+
+  // Knuckle axis (index MCP -> pinky MCP), handedness independent
+  const kx = P[17].x - P[5].x, ky = P[17].y - P[5].y, kl = Math.hypot(kx, ky) || 1;
+  const across = i => ((P[i].x - P[5].x) * kx + (P[i].y - P[5].y) * ky) / (kl * kl);
+  // "Up" axis of the hand (wrist -> middle MCP)
+  const ux = P[9].x - P[0].x, uy = P[9].y - P[0].y, ul = Math.hypot(ux, uy) || 1;
+  const up = i => ((P[i].x - P[5].x) * ux + (P[i].y - P[5].y) * uy) / (ul * palm);
+
+  const dir = (a, b) => { const x = P[b].x - P[a].x, y = P[b].y - P[a].y, l = Math.hypot(x, y) || 1; return { x: x / l, y: y / l }; };
+  const iDir = dir(5, 8);
+  const sideways = Math.abs(iDir.x) > 0.75;
+  const down = iDir.y > 0.6;
+
+  const thumbOut = d(4, 5) / palm > 0.6 && straightness([1, 2, 3, 4]) > 0.8;
+  const pinch = d(4, 8) / palm;
+
+  if (I && M && R && Pk) return "B";
+  if (I && M && R && !Pk) return "W";
+  if (!I && M && R && Pk && pinch < 0.35) return "F";
+
+  if (I && M && !R && !Pk) {
+    if (down) return "P";
+    if (sideways) return "H";
+    if (across(8) > across(12) + 0.05) return "R";
+    const thumbBetween = d(4, 10) / palm < 0.35 && up(4) > 0.15;
+    if (thumbBetween) return "K";
+    return d(8, 12) / d(5, 9) > 1.7 ? "V" : "U";
+  }
+
+  if (I && !M && !R && !Pk) {
+    if (down) return "Q";
+    if (sideways) return "G";
+    if (thumbOut && d(4, 5) / palm > 0.7) return "L";
+    return "D";
+  }
+
+  if (!I && !M && !R && Pk) return thumbOut ? "Y" : "I";
+
+  if (!I && !M && !R && !Pk) {
+    // Hooked index with the other fingers closed
+    if (!curled[0] && curled[1] && curled[2] && curled[3] && pinch > 0.35) return "X";
+    // Curved hand (C / O): fingertips stay out past the middle joints
+    if (!curled[0] && !curled[1] && !curled[2]) return pinch < 0.3 ? "O" : "C";
+    if (curled.every(Boolean)) {
+      const t = across(4);
+      const tipsUp = Math.min(up(8), up(12), up(16), up(20));
+      if (t < -0.05) return "A";
+      if (up(4) < tipsUp - 0.08) return "E";
+      if (t < 0.25) return "T";
+      if (t < 0.5) return "S";
+      if (t < 0.75) return "N";
+      return "M";
+    }
+  }
+  return null;
+}
+
+// ---------- motion letters (J, Z) ----------
+const trail = [];   // recent {x, y, t, tip}
+function motionLetter(base, lm, W, H, now) {
+  const tip = base === "I" ? 20 : 8;
+  if (base !== "I" && base !== "D" && base !== "G" && base !== "X") { trail.length = 0; return null; }
+  trail.push({ x: lm[tip].x * W, y: lm[tip].y * H, t: now, tip });
+  while (trail.length && (now - trail[0].t > 900 || trail[0].tip !== tip)) trail.shift();
+  if (trail.length < 8) return null;
+  let path = 0, dirChanges = 0, prevDx = 0;
+  for (let i = 1; i < trail.length; i++) {
+    const dx = trail[i].x - trail[i - 1].x, dy = trail[i].y - trail[i - 1].y;
+    path += Math.hypot(dx, dy);
+    if (Math.abs(dx) > 2) { if (prevDx && Math.sign(dx) !== Math.sign(prevDx)) dirChanges++; prevDx = dx; }
+  }
+  const palm = Math.hypot((lm[9].x - lm[0].x) * W, (lm[9].y - lm[0].y) * H);
+  if (path < palm * 1.3) return null;
+  if (base === "I") return "J";
+  if (dirChanges >= 2) return "Z";
+  return null;
+}
+
+// ---------- letter commit logic ----------
+const votes = [];
+let candidate = null, holdStart = 0, committed = false, lastHandSeen = 0;
+
+function stableLetter(raw) {
+  votes.push(raw);
+  if (votes.length > 7) votes.shift();
+  const counts = {};
+  for (const v of votes) counts[v] = (counts[v] || 0) + 1;
+  const [best, n] = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+  return n >= 4 && best !== "null" ? best : null;
+}
+
+function updateLetter(letter, now, instant = false) {
+  if (letter !== candidate) { candidate = letter; holdStart = now; committed = false; }
+  if (letter && !committed && (instant || now - holdStart >= HOLD_MS)) {
+    typeLetter(letter);
+    committed = true;
+  }
+  const p = letter && !committed ? Math.min(1, (now - holdStart) / HOLD_MS) : (committed ? 1 : 0);
+  $("holdBar").style.width = `${p * 100}%`;
+  $("current").textContent = `[ ${letter || " "} ]`;
+  for (const ch in tiles) tiles[ch].classList.toggle("on", ch === letter);
+}
+
+// ---------- facial expression ----------
+const EXPRS = ["happy", "sad", "angry", "surprised", "neutral"];
+const ADVERB = { happy: "happily", sad: "sadly", angry: "angrily", surprised: "in surprise", neutral: "calmly" };
+const smooth = Object.fromEntries(EXPRS.map(e => [e, 0]));
+let currentExpr = "neutral";
+
+$("meters").innerHTML = EXPRS.map(e =>
+  `<div>${e.toUpperCase()}<div class="bar"><i id="m-${e}"></i></div></div>`).join("");
+
+function readExpression(blend) {
+  const s = Object.fromEntries(blend.categories.map(c => [c.categoryName, c.score]));
+  const avg = (a, b) => ((s[a] || 0) + (s[b] || 0)) / 2;
+  const smile = avg("mouthSmileLeft", "mouthSmileRight");
+  const frown = avg("mouthFrownLeft", "mouthFrownRight");
+  const browDown = avg("browDownLeft", "browDownRight");
+  const browUp = s.browInnerUp || 0;
+  const jaw = s.jawOpen || 0;
+  const eyeWide = avg("eyeWideLeft", "eyeWideRight");
+  const sneer = avg("noseSneerLeft", "noseSneerRight");
+  const press = avg("mouthPressLeft", "mouthPressRight");
+
+  const raw = {
+    happy: smile * 1.2,
+    surprised: Math.min(jaw * 1.6, 1) * Math.max(browUp, eyeWide * 1.5, 0.3),
+    angry: browDown * 0.9 + sneer * 0.6 + press * 0.3,
+    sad: frown * 1.4 + browUp * 0.35 * (1 - jaw) + press * 0.2,
+  };
+  raw.neutral = 0.3;
+  for (const e of EXPRS) smooth[e] = smooth[e] * 0.8 + Math.min(raw[e], 1) * 0.2;
+  currentExpr = EXPRS.reduce((a, b) => smooth[a] >= smooth[b] ? a : b);
+
+  for (const e of EXPRS) $(`m-${e}`).style.width = `${Math.min(smooth[e], 1) * 100}%`;
+  if (state.word) state.exprCounts[currentExpr] = (state.exprCounts[currentExpr] || 0) + 1;
+
+  const last = state.words[state.words.length - 1];
+  const subject = state.word ? `"${state.word}"` : last ? `"${last.text}"` : "";
+  const expr = state.word ? currentExpr : last ? last.expr : currentExpr;
+  $("exprLine").textContent = `[ You say ${subject ? subject + " " : ""}${ADVERB[expr]} ]`;
+}
+
+function dominant(counts) {
+  const e = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+  return e ? e[0] : null;
+}
+
+// ---------- drawing ----------
+let draw;
+function drawFace(face) {
+  const style = { color: "#7CFC00", lineWidth: 3 };
+  for (const set of [FaceLandmarker.FACE_LANDMARKS_LEFT_EYE, FaceLandmarker.FACE_LANDMARKS_RIGHT_EYE,
+                     FaceLandmarker.FACE_LANDMARKS_LIPS, FaceLandmarker.FACE_LANDMARKS_LEFT_EYEBROW,
+                     FaceLandmarker.FACE_LANDMARKS_RIGHT_EYEBROW]) {
+    draw.drawConnectors(face, set, style);
+  }
+}
+function drawHand(hand) {
+  draw.drawConnectors(hand, HandLandmarker.HAND_CONNECTIONS, { color: "#7CFC00", lineWidth: 4 });
+  draw.drawLandmarks(hand, { color: "#7CFC00", fillColor: "#7CFC00", radius: 5 });
+}
+
+// ---------- main loop ----------
+let hands, face, lastVideoTime = -1;
+
+async function start() {
+  $("status").innerHTML = "<div>Loading hand + face models…</div>";
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720, facingMode: "user" } });
+    video.srcObject = stream;
+    await video.play();
+
+    const fileset = await FilesetResolver.forVisionTasks(WASM);
+    [hands, face] = await Promise.all([
+      HandLandmarker.createFromOptions(fileset, {
+        baseOptions: { modelAssetPath: HAND_MODEL, delegate: "GPU" },
+        runningMode: "VIDEO", numHands: 1,
+      }),
+      FaceLandmarker.createFromOptions(fileset, {
+        baseOptions: { modelAssetPath: FACE_MODEL, delegate: "GPU" },
+        runningMode: "VIDEO", numFaces: 1, outputFaceBlendshapes: true,
+      }),
+    ]);
+    draw = new DrawingUtils(ctx);
+    $("status").hidden = true;
+    $("badge").hidden = false;
+    requestAnimationFrame(loop);
+  } catch (err) {
+    console.error(err);
+    $("status").innerHTML = `<div>Couldn't start: ${err.message || err}<br><br>
+      Allow camera access and open this page in Chrome or Edge.<br><button id="retry">Try again</button></div>`;
+    $("retry").onclick = start;
+  }
+}
+
+function loop() {
+  requestAnimationFrame(loop);
+  if (video.currentTime === lastVideoTime || !video.videoWidth) return;
+  lastVideoTime = video.currentTime;
+  const now = performance.now();
+  const W = video.videoWidth, H = video.videoHeight;
+  if (canvas.width !== W) { canvas.width = W; canvas.height = H; }
+  ctx.clearRect(0, 0, W, H);
+
+  const f = face.detectForVideo(video, now);
+  if (f.faceLandmarks.length) {
+    drawFace(f.faceLandmarks[0]);
+    if (f.faceBlendshapes?.length) readExpression(f.faceBlendshapes[0]);
+  }
+
+  const h = hands.detectForVideo(video, now);
+  if (h.landmarks.length) {
+    const lm = h.landmarks[0];
+    lastHandSeen = now;
+    drawHand(lm);
+    const base = classify(lm, W, H);
+    const motion = motionLetter(base, lm, W, H, now);
+    if (motion) { updateLetter(motion, now, true); votes.length = 0; trail.length = 0; }
+    else updateLetter(stableLetter(base), now);
+  } else {
+    votes.length = 0; trail.length = 0;
+    updateLetter(null, now);
+    if (state.word && now - lastHandSeen > WORD_GAP_MS) finishWord();
+  }
+}
+
+$("startBtn").onclick = start;
+render();
+</script>
+</body>
+</html>
