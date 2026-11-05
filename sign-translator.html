@@ -5,34 +5,43 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sign Translator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #ffffff;
-    --ink: #0a0a0a;
-    --muted: #9a9a9a;
-    --green: #7CFC00;
-    --box: #000000;
-    --box-ink: #ffffff;
+    --paper: #eef0ec;
+    --card: #ffffff;
+    --ink: #16191d;
+    --slate: #687078;
+    --line: #d9ddd7;
+    --panel: #1d2127;
+    --panel-line: #343a42;
+    --panel-muted: #8b939c;
+    --signal: #6ee03a;
+    --signal-deep: #2b8a3e;
+    --radius: 14px;
+    --mono: "JetBrains Mono", ui-monospace, monospace;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; }
   body {
-    background: var(--bg);
+    background: var(--paper);
     color: var(--ink);
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
     display: grid;
     grid-template-columns: 1fr 1fr;
     height: 100vh;
     overflow: hidden;
   }
   .col { padding: 2vh 32px; display: flex; flex-direction: column; gap: 1.4vh; min-height: 0; }
-  .left { border-right: 2px solid var(--ink); }
+  .left { border-right: 1px solid var(--line); }
+  button { font: inherit; cursor: pointer; }
+  button:focus-visible { outline: 3px solid var(--signal-deep); outline-offset: 2px; }
 
   /* camera */
   .cam {
     position: relative; width: 100%; flex: 1; min-height: 120px;
-    background: #f3f3f3; border-radius: 6px; overflow: hidden;
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); overflow: hidden;
   }
   .cam video, .cam canvas {
     position: absolute; inset: 0; width: 100%; height: 100%;
@@ -40,69 +49,107 @@
   }
   .cam .status {
     position: absolute; inset: 0; display: grid; place-items: center;
-    text-align: center; padding: 20px; font-size: 14px; color: #555;
+    text-align: center; padding: 20px; font-size: 15px; color: var(--slate); line-height: 1.5;
   }
   .cam .status button {
-    margin-top: 12px; font: inherit; font-weight: 700; padding: 10px 18px;
-    background: var(--box); color: var(--box-ink); border: 0; cursor: pointer;
+    margin-top: 14px; font-weight: 700; font-size: 15px; padding: 11px 22px;
+    background: var(--ink); color: #fff; border: 0; border-radius: 999px;
   }
+  .cam .status button:hover { background: #000; }
   .badge {
-    position: absolute; top: 10px; left: 10px; font-size: 11px; font-weight: 700;
-    background: rgba(0,0,0,.75); color: #fff; padding: 4px 8px; letter-spacing: .05em;
+    position: absolute; top: 12px; left: 12px; display: flex; align-items: center; gap: 7px;
+    font-size: 12px; font-weight: 700; color: #fff;
+    background: rgba(22, 25, 29, .72); padding: 5px 11px 5px 9px; border-radius: 999px;
+  }
+  .badge[hidden] { display: none; }
+  .badge .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--signal);
+    box-shadow: 0 0 0 3px rgba(110, 224, 58, .25);
   }
 
   /* alphabet */
   .alphabet {
-    display: grid; grid-template-columns: repeat(13, 1fr); gap: 4px;
+    display: grid; grid-template-columns: repeat(13, 1fr); gap: 2px;
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 6px;
   }
   .alphabet div {
-    border: 1px solid transparent; border-radius: 4px; text-align: center;
-    padding: 2px 0 1px; font-size: clamp(11px, 1.5vh, 14px); transition: background .1s, border-color .1s;
+    border-radius: 8px; text-align: center; color: var(--slate);
+    padding: 3px 0 2px; font-size: clamp(11px, 1.5vh, 14px);
+    transition: background .12s, color .12s;
   }
-  .alphabet img { display: block; width: 100%; height: clamp(22px, 4.2vh, 44px); object-fit: contain; margin-bottom: 2px; }
-  .alphabet div.on { background: var(--green); border-color: var(--ink); font-weight: 800; }
+  .alphabet img { display: block; width: 100%; height: clamp(22px, 4vh, 42px); object-fit: contain; margin-bottom: 1px; }
+  .alphabet div.on { background: var(--ink); color: var(--signal); font-weight: 700; }
+  .alphabet div.on img { filter: invert(1); }
 
-  /* black boxes */
+  /* dark panels */
   .box {
-    background: var(--box); color: var(--box-ink); text-align: center;
-    padding: 1.4vh 20px; display: flex; flex-direction: column; gap: 0.8vh;
+    background: var(--panel); color: #fff; border-radius: var(--radius);
+    padding: 1.6vh 22px; display: flex; flex-direction: column; gap: 1vh;
   }
-  .box h2 { margin: 0; font-size: clamp(14px, 2.2vh, 22px); font-weight: 800; letter-spacing: .06em; }
-  .current { font-size: clamp(18px, 3vh, 30px); font-weight: 800; }
-  .spelled { font-size: clamp(16px, 2.6vh, 26px); font-weight: 800; letter-spacing: .35em; }
-  .spelled .cursor { animation: blink 1s steps(1) infinite; }
-  @keyframes blink { 50% { opacity: 0; } }
-  .hold { height: 4px; background: #333; }
-  .hold > i { display: block; height: 100%; width: 0; background: var(--green); }
+  .box h2 { margin: 0; font-size: clamp(13px, 1.8vh, 17px); font-weight: 700; color: var(--panel-muted); }
 
-  .footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .controls { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-  .controls button {
-    font: inherit; font-size: 12px; font-weight: 700; padding: 8px 12px;
-    background: var(--bg); color: var(--ink); border: 2px solid var(--ink); cursor: pointer;
+  .reading { display: grid; grid-template-columns: auto 1fr; gap: 1vh 20px; align-items: center; }
+  .reading h2 { grid-column: 1 / -1; }
+  .current {
+    font-family: var(--mono); font-weight: 700; font-size: clamp(26px, 4.6vh, 46px);
+    width: 1.6em; height: 1.6em; display: grid; place-items: center;
+    border: 1px solid var(--panel-line); border-radius: 10px; color: var(--signal);
   }
-  .controls button:hover { background: var(--ink); color: var(--bg); }
+  .word { display: flex; flex-direction: column; gap: 1vh; min-width: 0; }
+  .spelled {
+    font-family: var(--mono); font-size: clamp(18px, 3vh, 30px); font-weight: 700;
+    letter-spacing: .3em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .spelled .cursor { color: var(--signal); animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .hold { height: 4px; background: var(--panel-line); border-radius: 2px; overflow: hidden; }
+  .hold > i { display: block; height: 100%; width: 0; background: var(--signal); }
+
+  /* controls */
+  .footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .controls { display: flex; gap: 6px; flex-shrink: 0; }
+  .controls button {
+    font-size: 14px; font-weight: 700; padding: 8px 16px; border-radius: 999px;
+    background: var(--card); color: var(--ink); border: 1px solid var(--line);
+  }
+  .controls button:hover { border-color: var(--ink); }
+  .controls #speakBtn { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .controls #speakBtn:hover { background: #000; }
+  .help { font-size: 12px; color: var(--slate); text-align: right; line-height: 1.7; }
+  kbd {
+    font-family: var(--mono); font-size: 11px; padding: 1px 5px;
+    border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; background: var(--card);
+  }
 
   /* right side */
   .right { justify-content: space-between; }
-  .right .title { text-align: center; font-size: clamp(18px, 2.8vh, 28px); font-weight: 800; margin-top: 4vh; }
+  .right .title { text-align: center; font-size: clamp(16px, 2.2vh, 22px); font-weight: 700; color: var(--slate); margin-top: 4vh; }
   .translation {
     flex: 1; display: flex; align-items: center; justify-content: center; text-align: center;
-    font-size: clamp(36px, min(8vw, 16vh), 150px); min-height: 0; overflow: hidden; font-weight: 400; line-height: 1.05; word-break: break-word;
+    font-family: var(--mono); font-size: clamp(36px, min(8vw, 16vh), 150px); font-weight: 400;
+    line-height: 1.05; letter-spacing: -.02em; word-break: break-word; min-height: 0; overflow: hidden;
   }
-  .translation .live { color: var(--muted); }
-  .expr .line { font-size: clamp(16px, 2.6vh, 26px); }
-  .meters { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; font-size: 11px; }
-  .meters .bar { height: 4px; background: #333; margin-top: 4px; }
-  .meters .bar i { display: block; height: 100%; background: var(--green); width: 0; }
-  .help { font-size: 10px; color: var(--muted); text-align: right; line-height: 1.4; }
+  .translation .live { color: #8f968e; }
+  .translation .empty { font-family: "Atkinson Hyperlegible", sans-serif; font-size: 18px; color: var(--slate); letter-spacing: 0; }
+  .expr { text-align: center; }
+  .expr .line { font-family: var(--mono); font-size: clamp(16px, 2.6vh, 26px); }
+  .expr .line b { color: var(--signal); font-weight: 700; }
+  .meters { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; font-size: 12px; color: var(--panel-muted); text-align: left; }
+  .meters > div.on { color: #fff; font-weight: 700; }
+  .meters .bar { height: 4px; background: var(--panel-line); border-radius: 2px; margin-top: 5px; overflow: hidden; }
+  .meters .bar i { display: block; height: 100%; width: 0; background: var(--panel-muted); transition: width .15s; }
+  .meters > div.on .bar i { background: var(--signal); }
 
+  @media (prefers-reduced-motion: reduce) {
+    .spelled .cursor { animation: none; }
+    .meters .bar i, .alphabet div { transition: none; }
+  }
   @media (max-width: 900px) {
     body { grid-template-columns: 1fr; height: auto; overflow: auto; }
     .cam { flex: none; aspect-ratio: 4 / 3; }
     .footer { flex-direction: column; }
     .help { text-align: center; }
-    .left { border-right: 0; border-bottom: 2px solid var(--ink); }
+    .left { border-right: 0; border-bottom: 1px solid var(--line); }
     .col { padding: 16px; }
     .right .title { margin-top: 10px; }
     .alphabet { grid-template-columns: repeat(7, 1fr); }
@@ -116,42 +163,44 @@
       <canvas id="overlay"></canvas>
       <div class="status" id="status">
         <div>
-          <div>Camera is off. Hands and face are tracked locally in your browser.</div>
+          <div>Your camera is off. Hands and face are tracked on this device only.</div>
           <button id="startBtn">Start camera</button>
         </div>
       </div>
-      <div class="badge" id="badge" hidden>TRACKING</div>
+      <div class="badge" id="badge" hidden><span class="dot"></span>Tracking</div>
     </div>
 
     <div class="alphabet" id="alphabet"></div>
 
-    <div class="box">
-      <h2>READING INPUT</h2>
-      <div class="current" id="current">[ &nbsp; ]</div>
-      <div class="hold"><i id="holdBar"></i></div>
-      <div class="spelled" id="spelled"><span class="cursor">_</span></div>
+    <div class="box reading">
+      <h2>Reading input</h2>
+      <div class="current" id="current" aria-live="polite">·</div>
+      <div class="word">
+        <div class="spelled" id="spelled"><span class="cursor">_</span></div>
+        <div class="hold"><i id="holdBar"></i></div>
+      </div>
     </div>
 
     <div class="footer">
     <div class="controls">
-      <button id="spaceBtn">SPACE</button>
-      <button id="backBtn">DELETE</button>
-      <button id="clearBtn">CLEAR</button>
-      <button id="speakBtn">SPEAK</button>
+      <button id="spaceBtn">Space</button>
+      <button id="backBtn">Delete</button>
+      <button id="clearBtn">Clear</button>
+      <button id="speakBtn">Speak</button>
     </div>
     <div class="help">
-      Hold a letter ~0.8s to type it. To repeat a letter (LL), relax your hand or drop it briefly.<br>
-      Lower your hand for 1.5s to finish the word. Keys: Space, Backspace, Esc.
+      Hold a sign to type it. Drop your hand to repeat a letter or end a word.<br>
+      <kbd>Space</kbd> <kbd>Backspace</kbd> <kbd>Esc</kbd>
     </div>
     </div>
   </section>
 
   <section class="col right">
     <div class="title">Translation</div>
-    <div class="translation" id="translation"><span class="live">&nbsp;</span></div>
+    <div class="translation" id="translation" aria-live="polite"></div>
     <div class="box expr">
-      <h2>EXPRESSION</h2>
-      <div class="line" id="exprLine">[ waiting for face ]</div>
+      <h2>Expression</h2>
+      <div class="line" id="exprLine">[ waiting for your face ]</div>
       <div class="meters" id="meters"></div>
     </div>
   </section>
@@ -207,8 +256,9 @@ function render() {
   const spelled = state.word.split("").join(" ");
   $("spelled").innerHTML = `${spelled}${spelled ? " " : ""}<span class="cursor">_</span>`;
   const done = state.words.map(w => w.text).join(" ");
-  $("translation").innerHTML =
-    (done ? `${done} ` : "") + `<span class="live">${state.word || (done ? "" : "&nbsp;")}</span>`;
+  $("translation").innerHTML = done || state.word
+    ? `<div>${done ? `${done} ` : ""}<span class="live">${state.word}</span></div>`
+    : `<span class="empty">Spell a word with your hand to start</span>`;
 }
 
 function typeLetter(ch) {
@@ -359,7 +409,7 @@ function updateLetter(letter, now, instant = false) {
   }
   const p = letter && !committed ? Math.min(1, (now - holdStart) / HOLD_MS) : (committed ? 1 : 0);
   $("holdBar").style.width = `${p * 100}%`;
-  $("current").textContent = `[ ${letter || " "} ]`;
+  $("current").textContent = letter || "·";
   for (const ch in tiles) tiles[ch].classList.toggle("on", ch === letter);
 }
 
@@ -370,7 +420,7 @@ const smooth = Object.fromEntries(EXPRS.map(e => [e, 0]));
 let currentExpr = "neutral";
 
 $("meters").innerHTML = EXPRS.map(e =>
-  `<div>${e.toUpperCase()}<div class="bar"><i id="m-${e}"></i></div></div>`).join("");
+  `<div id="meter-${e}">${e[0].toUpperCase() + e.slice(1)}<div class="bar"><i id="m-${e}"></i></div></div>`).join("");
 
 function readExpression(blend) {
   const s = Object.fromEntries(blend.categories.map(c => [c.categoryName, c.score]));
@@ -394,13 +444,16 @@ function readExpression(blend) {
   for (const e of EXPRS) smooth[e] = smooth[e] * 0.8 + Math.min(raw[e], 1) * 0.2;
   currentExpr = EXPRS.reduce((a, b) => smooth[a] >= smooth[b] ? a : b);
 
-  for (const e of EXPRS) $(`m-${e}`).style.width = `${Math.min(smooth[e], 1) * 100}%`;
+  for (const e of EXPRS) {
+    $(`m-${e}`).style.width = `${Math.min(smooth[e], 1) * 100}%`;
+    $(`meter-${e}`).classList.toggle("on", e === currentExpr);
+  }
   if (state.word) state.exprCounts[currentExpr] = (state.exprCounts[currentExpr] || 0) + 1;
 
   const last = state.words[state.words.length - 1];
   const subject = state.word ? `"${state.word}"` : last ? `"${last.text}"` : "";
   const expr = state.word ? currentExpr : last ? last.expr : currentExpr;
-  $("exprLine").textContent = `[ You say ${subject ? subject + " " : ""}${ADVERB[expr]} ]`;
+  $("exprLine").innerHTML = `[ You say ${subject ? subject + " " : ""}<b>${ADVERB[expr]}</b> ]`;
 }
 
 function dominant(counts) {
