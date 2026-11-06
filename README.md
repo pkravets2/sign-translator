@@ -17,7 +17,6 @@ A webcam prototype that reads ASL fingerspelling from your hand and your facial 
 
 Keyboard: **Space** finishes a word, **Backspace** deletes, **Esc** clears.
 
-To run it locally instead, install Node.js, run `node serve.js` in this folder, and open http://localhost:8771.
 
 ## Credits
 
