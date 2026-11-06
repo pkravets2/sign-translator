@@ -1,35 +1,24 @@
-# Sign Translator
+# GBDA 414: Sign Language Translator
 
-A webcam sign language translator that runs entirely in your browser. It reads ASL fingerspelling from your hand and your facial expression from your face at the same time, then shows what you spelled and how you said it, e.g. `[ You say "HELLO" happily ]`.
+A webcam prototype that reads ASL fingerspelling from your hand and your facial expression from your face, then shows what you spelled and how you said it.
 
-## How it works
+**Try it:** https://pkravets2.github.io/sign-translator/
 
-- **Hand tracking**: [MediaPipe Hand Landmarker](https://ai.google.dev/edge/mediapipe/solutions/vision/hand_landmarker) finds 21 points on your hand. Rule-based geometry turns those points into ASL letters (A–Z). J and Z are detected from motion.
-- **Face tracking**: [MediaPipe Face Landmarker](https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker) blendshapes are mapped to happy, sad, angry, surprised or neutral.
-- No video leaves your computer.
+## How to use it
 
-## Run it
+1. Open the link in Chrome or Edge.
+2. Click **Start camera** and allow camera access.
+3. Sit so your face and one hand are in view.
+4. Make a letter sign from the alphabet strip and hold it for about a second. It appears under Reading input.
+5. To type the same letter twice (the LL in HELLO), drop your hand briefly between the two.
+6. Lower your hand for about 1.5 seconds to finish the word. It moves to the Translation panel.
+7. Your expression (happy, sad, angry, surprised or neutral) shows in the Expression box, for example `[ You say "HELLO" happily ]`.
+8. Click **Speak** to hear the sentence read aloud in a tone that matches your expression.
 
-You need [Node.js](https://nodejs.org).
+Keyboard: **Space** finishes a word, **Backspace** deletes, **Esc** clears.
 
-```bash
-node serve.js
-```
-
-Then open http://localhost:8771 in Chrome or Edge and click **Start camera**.
-
-## Using it
-
-- Hold a letter for about 0.8s to type it.
-- To repeat a letter (the LL in HELLO), relax or drop your hand in between.
-- Lower your hand for 1.5s to finish a word.
-- Keys: Space finishes a word, Backspace deletes, Esc clears.
-- **Speak** reads the sentence aloud, with the voice's tone changed to match your expression.
-
-## Limitations
-
-Letters are recognized with hand-written rules, not a trained model, so similar handshapes (M/N/S/T/E, A/S) get confused. Only fingerspelling is supported, not whole-word signs.
+To run it locally instead, install Node.js, run `node serve.js` in this folder, and open http://localhost:8771.
 
 ## Credits
 
-ASL handshape drawings: public domain, from [wpclipart](http://www.wpclipart.com/legal.html) via [Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:ASL_letters).
+ASL hand-sign illustrations: public domain, from wpclipart via [Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:ASL_letters).
