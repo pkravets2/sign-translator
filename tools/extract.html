@@ -1,0 +1,51 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Extract hand landmarks</title>
+<body style="font-family: monospace; padding: 20px">
+<div id="log">loading…</div>
+<script type="module">
+// Runs MediaPipe hand tracking on every dataset image and posts the 21 landmarks
+// per hand back to tools/extract-server.js. Open http://localhost:8772 to start.
+import { FilesetResolver, HandLandmarker }
+  from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
+
+const log = document.getElementById("log");
+const fileset = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+const hands = await HandLandmarker.createFromOptions(fileset, {
+  baseOptions: {
+    modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+  },
+  runningMode: "IMAGE", numHands: 1,
+  minHandDetectionConfidence: 0.3, minHandPresenceConfidence: 0.3,
+});
+
+const items = await (await fetch("/list")).json();
+const round = v => Math.round(v * 1e5) / 1e5;
+let found = 0, batch = [];
+window.progress = { done: 0, total: items.length, found: 0, finished: false };
+
+for (let i = 0; i < items.length; i++) {
+  const it = items[i];
+  try {
+    const blob = await (await fetch("/img?p=" + encodeURIComponent(it.p))).blob();
+    const bmp = await createImageBitmap(blob);
+    const r = hands.detect(bmp);
+    if (r.landmarks.length) {
+      found++;
+      batch.push({
+        set: it.set, label: it.label, w: bmp.width, h: bmp.height,
+        hand: r.handedness[0][0].categoryName,
+        lm: r.landmarks[0].map(p => [round(p.x), round(p.y), round(p.z)]),
+      });
+    }
+    bmp.close();
+  } catch (e) { console.warn(it.p, e); }
+  if (batch.length >= 200 || i === items.length - 1) {
+    if (batch.length) await fetch("/save", { method: "POST", body: JSON.stringify(batch) });
+    batch = [];
+    log.textContent = `${i + 1} / ${items.length} images, ${found} hands found`;
+  }
+  window.progress = { done: i + 1, total: items.length, found, finished: i === items.length - 1 };
+}
+log.textContent += " — done";
+</script>
