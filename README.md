@@ -1,23 +1,31 @@
-# GBDA 414: Sign Language Translator
+# GBDA 414, Group 4: The Goblet of Fire
 
-A webcam prototype that reads ASL fingerspelling from your hand and your facial expression from your face, then shows what you spelled and how you said it.
+A webcam piece where a machine questions you and you answer in sign language. It reads your hands and face, then decides whether it believes you.
 
 **Try it:** https://pkravets2.github.io/sign-translator/
 
 ## How to use it
 
-1. Open the link in Chrome or Edge.
-2. Click **Start camera** and allow camera access.
-3. Sit so your face and one hand are in view.
-4. Make a letter sign from the alphabet strip and hold it for about a second. It appears under Reading input.
-5. To type the same letter twice (the LL in HELLO), drop your hand briefly between the two.
-6. Lower your hand for about 1.5 seconds to finish the word. It moves to the Translation panel.
-7. Your expression (happy, sad, angry, surprised or neutral) shows in the Expression box, for example `[ You say "HELLO" happily ]`.
-8. Click **Speak** to hear the sentence read aloud in a tone that matches your expression.
+1. Open the link in Chrome or Edge, press **Start** and allow the camera.
+2. Spell your name by copying the hand shapes on screen. Hold each letter still.
+3. Answer four questions by spelling YES or NO. Shake your head for no and nod for yes.
+4. See the machine's verdict, then what really happened.
 
-Keyboard: **Space** finishes a word, **Backspace** deletes, **Esc** clears.
+**How it works** in the top bar explains it again at any time. **Practice** shows the letters up close.
 
+## Run it on your own computer
+
+Install [Node.js](https://nodejs.org), then:
+
+```bash
+node serve.js
+```
+
+Open http://localhost:8771 in Chrome or Edge.
 
 ## Credits
 
-ASL hand-sign illustrations: public domain, from wpclipart via [Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:ASL_letters).
+- Hand and face tracking: Google MediaPipe.
+- Hand-sign drawings: public domain, from wpclipart via [Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:ASL_letters).
+- Letter recognition trained on two Kaggle datasets: [asl-alphabet](https://www.kaggle.com/datasets/grassknoted/asl-alphabet) and [asl-dataset](https://www.kaggle.com/datasets/ayuraj/asl-dataset).
+- A student project, not affiliated with Harry Potter.

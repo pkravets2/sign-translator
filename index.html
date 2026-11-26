@@ -1,5 +1,189 @@
 <!doctype html>
+<html lang="en">
+<head>
 <meta charset="utf-8">
-<title>Sign Translator</title>
-<meta http-equiv="refresh" content="0; url=sign-translator.html">
-<a href="sign-translator.html">Open Sign Translator</a>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Goblet of Fire | GBDA 414 Group 4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Atkinson+Hyperlegible:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-stage="idle" data-view="intro">
+
+<header class="top">
+  <h1 class="title">The Goblet of Fire</h1>
+  <ol class="steps" id="steps">
+    <li data-step="name"><span>1</span>Your name</li>
+    <li data-step="interrogation"><span>2</span><b id="stepQuestions">The questions</b></li>
+    <li data-step="reveal"><span>3</span>What really happened</li>
+  </ol>
+  <div class="top-right">
+    <button id="helpBtn" class="quiet" aria-expanded="false">How it works</button>
+    <button id="soundBtn" class="quiet" aria-pressed="true">Sound on</button>
+    <button id="dictBtn">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 5c3-1.4 6-1.4 10 .6 4-2 7-2 10-.6v14c-3-1.4-6-1.4-10 .6-4-2-7-2-10-.6z"/><path d="M12 5.6v14"/></svg>
+      Practice
+    </button>
+  </div>
+</header>
+
+<!-- ============ Welcome: what is about to happen, for someone who knows none of it ============ -->
+<main class="view intro-view">
+  <section class="intro-story">
+    <div class="intro-lead">
+      <div class="goblet" data-goblet></div>
+      <h2>A machine is about to question you.</h2>
+    </div>
+    <p>A magic cup has drawn a name for a dangerous contest. A machine thinks it is yours.</p>
+    <p>You say you never entered. It questions you, and you answer with your hands.</p>
+    <p class="intro-ease">No sign language needed. About 3 minutes.</p>
+  </section>
+
+  <ol class="intro-steps">
+    <li><span>1</span><div><h3>Tell it your name</h3><p>Spell it by copying the hand shapes on screen.</p></div></li>
+    <li><span>2</span><div><h3>Answer YES or NO</h3><p>Shake your head for no and nod for yes, as signers do. It watches your hands and face.</p></div></li>
+    <li><span>3</span><div><h3>Hear its verdict</h3><p>Then see what it got wrong.</p></div></li>
+  </ol>
+
+  <section class="intro-foot">
+    <p class="intro-why"><b>Why?</b> Machines can read signs and still misread people.</p>
+    <div class="intro-actions">
+      <button id="beginBtn" class="primary big">Start</button>
+      <button id="beginDemoBtn" class="quiet" hidden>Try without a camera</button>
+      <span>It will ask to use your camera. Your video stays on this computer.</span>
+    </div>
+  </section>
+</main>
+
+<!-- ============ Camera on the left, the Goblet and Dumbledore on the right ============ -->
+<main class="view station-view">
+  <section class="station">
+    <div class="cam">
+      <video id="video" playsinline muted></video>
+      <canvas id="overlay"></canvas>
+      <div class="cam-status" id="camStatus">
+        <svg viewBox="0 0 48 30" aria-hidden="true"><rect x="1.5" y="3" width="30" height="24" rx="5"/><path d="M33 12l12-7v20l-12-7z"/></svg>
+        <button id="startBtn" class="primary big">Start camera</button>
+        <p>Your video stays on this computer.</p>
+        <button id="demoBtn" class="quiet" hidden>Continue without a camera</button>
+      </div>
+      <!-- what the machine sees in your hand, shown where you are already looking -->
+      <div class="detected">
+        <div class="current" id="current" aria-live="polite">–</div>
+        <div class="detected-read">
+          <p id="detectedText">Hold up a letter</p>
+          <div class="hold"><i id="holdBar"></i></div>
+        </div>
+      </div>
+    </div>
+    <div class="ref-grid" id="alphabet" aria-label="ASL alphabet. Choose a letter to practise it."></div>
+  </section>
+
+  <section class="stage">
+    <div class="stagebox">
+      <!-- step 1: the machine asks who you are -->
+      <div class="scene scene-name">
+        <div class="goblet" data-goblet></div>
+        <h2 id="prompt">Start the camera to begin</h2>
+        <p id="promptSub">Then spell your name with your hand.</p>
+        <aside class="register" id="register" hidden>
+          <div class="register-head"><span>Spelled</span><span>The machine read</span></div>
+          <ol id="registerRows"></ol>
+          <button id="registerClear" class="quiet">Clear list</button>
+        </aside>
+      </div>
+
+      <!-- the name the machine settles on -->
+      <div class="scene scene-verdict">
+        <div class="goblet" data-goblet></div>
+        <p class="considering">The machine reads your name.</p>
+        <div class="slip"><p class="slip-name" id="announceName"></p></div>
+        <p class="chosen">That is who it thinks you are.</p>
+      </div>
+
+      <!-- the machine's verdict, before the reveal -->
+      <div class="scene scene-ruling" id="ruling">
+        <p class="ruling-pre">The machine has decided.</p>
+        <h2 id="rulingTitle"></h2>
+        <p id="rulingSub"></p>
+      </div>
+
+      <!-- step 2: Dumbledore, made of light and type -->
+      <div class="scene scene-dumbledore" id="dumbledore" data-tier="1">
+        <div class="light-wrap"><div class="light"></div></div>
+        <div class="q-area"><p class="question" id="question" aria-live="assertive"></p></div>
+        <p class="narration" id="narration"></p>
+      </div>
+    </div>
+
+    <div class="entry" id="entry" aria-live="polite"></div>
+    <div class="controls">
+      <button id="spaceBtn">Space</button>
+      <button id="backBtn">Delete</button>
+      <button id="clearBtn">Clear</button>
+      <button id="submitBtn" class="primary">That is my name</button>
+    </div>
+
+    <div class="under">
+      <p class="face-line" id="faceLine">The machine is looking for your face.</p>
+      <div class="wait-block">
+        <p id="waitHint"></p>
+        <div class="wait"><i id="waitBar"></i></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ============ Step 3: the book and the film, one moment at a time ============ -->
+<main class="view reveal-view">
+  <div class="reveal-head">
+    <div>
+      <h2>The book says he asked calmly.</h2>
+      <p id="revealWhere"></p>
+    </div>
+    <button id="againBtn" class="quiet">Start over</button>
+  </div>
+  <div class="reveal-page">
+    <section class="book">
+      <div class="col-head"><h3>The book</h3><p>What the machine wrote down</p></div>
+      <div class="col-body" id="bookPage"></div>
+    </section>
+    <section class="film">
+      <div class="col-head"><h3>The film</h3><p>What happened in front of the camera</p></div>
+      <div class="col-body" id="filmPage"></div>
+    </section>
+  </div>
+  <div class="reveal-nav">
+    <button id="revealBack">Back</button>
+    <span id="revealCount"></span>
+    <button id="revealNext" class="primary">Next</button>
+  </div>
+</main>
+
+<!-- ============ Practice: the letters, and the grammar on the face ============ -->
+<main class="view dict-view" id="dictView">
+  <div class="dict-head">
+    <button data-back>← Back to the Goblet</button>
+    <h2>Practice</h2>
+  </div>
+  <div class="dict-panels">
+    <section class="dict-browse">
+      <div class="dict-tabs">
+        <button data-tab="alphabet" class="on">Letters</button>
+        <button data-tab="face">The face</button>
+      </div>
+      <div class="dict-grid alphabet"></div>
+    </section>
+    <section class="detail">
+      <div class="detail-title"></div>
+      <div class="detail-figure"></div>
+      <div class="detail-text"></div>
+      <p class="detail-live" hidden></p>
+      <p class="detail-ref"></p>
+    </section>
+  </div>
+</main>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

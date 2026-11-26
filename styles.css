@@ -1,0 +1,353 @@
+/* The Great Hall at night: a dark room, a blue-white flame, slips of parchment. */
+:root {
+  --night: #0d1015;
+  --stone: #1b2028;
+  --stone-2: #262c36;
+  --line: #333a45;
+  --text: #f2ede1;
+  --muted: #b1ad9f;
+  --flame: #9ad7f5;
+  --flame-ink: #08212c;
+  --gold: #c2a05c;
+  --parchment: #e9dec3;
+  --ink: #2a2216;
+  --ember: #ff8a57;
+  --ui: "Atkinson Hyperlegible", system-ui, sans-serif;
+  --book: "EB Garamond", Georgia, serif;        /* the book's voice */
+  --shout: "Anton", "Arial Narrow", sans-serif; /* the film's voice */
+  --gutter: clamp(18px, 2.8vw, 56px);
+  --gap: clamp(10px, 1.8vh, 20px);
+  --text-s: clamp(16px, 2.1vh, 19px);   /* nothing on screen is smaller than this */
+  --text-m: clamp(17px, 2.5vh, 22px);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: radial-gradient(120% 100% at 72% 38%, #161b24 0%, var(--night) 62%);
+  color: var(--text); font-family: var(--ui); font-size: var(--text-s); line-height: 1.4;
+  display: flex; flex-direction: column; height: 100vh; overflow: hidden; padding: 0 var(--gutter);
+}
+h1, h2, h3, h4, p, ol, figure { margin: 0; font-weight: inherit; }
+ol { list-style: none; padding: 0; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 3px solid var(--flame); outline-offset: 3px; }
+
+/* ---------- buttons ---------- */
+button {
+  font: inherit; font-weight: 700; color: var(--text); cursor: pointer;
+  background: var(--stone-2); border: 0; border-radius: 12px;
+  height: clamp(46px, 6.2vh, 64px); padding: 0 clamp(16px, 1.6vw, 30px);
+}
+button:hover:not(:disabled) { background: #323a47; }
+button:disabled { opacity: .4; cursor: default; }
+button.primary { background: var(--flame); color: var(--flame-ink); }
+button.primary:hover:not(:disabled) { background: #b9e5fa; }
+button.quiet { background: none; color: var(--muted); font-weight: 400; padding: 0 10px; }
+button.quiet:hover:not(:disabled) { background: none; color: var(--text); }
+
+/* ---------- top bar: title, where you are, two tools ---------- */
+.top { flex: none; height: clamp(56px, 8.4vh, 88px); display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.title { font-family: var(--book); font-weight: 500; font-size: clamp(24px, 3.9vh, 40px); letter-spacing: -.01em; white-space: nowrap; }
+.steps { display: flex; align-items: center; gap: clamp(10px, 1.4vw, 28px); font-size: var(--text-s); color: var(--muted); }
+.steps li { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+.steps li + li::before { content: ""; width: clamp(14px, 2.4vw, 48px); height: 2px; background: var(--line); margin-right: clamp(0px, .8vw, 16px); }
+.steps span { width: 1.9em; height: 1.9em; display: grid; place-items: center; border-radius: 50%; background: var(--stone-2); font-weight: 700; }
+.steps b { font-weight: inherit; }
+.steps li.on { color: var(--text); font-weight: 700; }
+.steps li.on span { background: var(--flame); color: var(--flame-ink); }
+.top-right { display: flex; align-items: center; gap: 8px; }
+.top-right button { height: clamp(40px, 5.4vh, 52px); white-space: nowrap; }
+#dictBtn { display: flex; align-items: center; gap: 10px; }
+#dictBtn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linejoin: round; }
+
+/* ---------- views ---------- */
+.view { flex: 1; min-height: 0; display: none; padding-bottom: clamp(14px, 2.6vh, 30px); }
+body[data-view="station"] .station-view { display: grid; grid-template-columns: minmax(0, .96fr) minmax(0, 1fr); gap: clamp(20px, 3vw, 60px); }
+body[data-view="intro"] .intro-view { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: 1fr auto; gap: clamp(14px, 3vh, 40px) clamp(24px, 4vw, 80px); align-items: center; }
+body[data-view="reveal"] .reveal-view,
+body[data-view="dictionary"] .dict-view { display: flex; flex-direction: column; gap: var(--gap); }
+.station, .stage { display: flex; flex-direction: column; gap: var(--gap); min-height: 0; }
+
+/* ---------- welcome ---------- */
+.intro-story { display: flex; flex-direction: column; gap: clamp(10px, 2.2vh, 24px); font-size: clamp(20px, 3.4vh, 32px); line-height: 1.35; }
+.intro-lead { display: flex; align-items: center; gap: clamp(14px, 2vw, 32px); }
+.intro-lead .goblet { height: clamp(84px, 17vh, 190px); }
+.intro-lead h2 { font-family: var(--book); font-weight: 500; font-size: clamp(30px, 6.4vh, 68px); line-height: 1.05; letter-spacing: -.01em; }
+.intro-ease { color: var(--muted); }
+.intro-steps { display: flex; flex-direction: column; gap: clamp(12px, 2.6vh, 30px); }
+.intro-steps li { display: flex; gap: clamp(14px, 1.4vw, 24px); align-items: flex-start; }
+.intro-steps span { flex: none; width: 1.9em; height: 1.9em; display: grid; place-items: center; border-radius: 50%; background: var(--flame); color: var(--flame-ink); font-size: clamp(20px, 3vh, 28px); font-weight: 700; }
+.intro-steps h3 { font-size: clamp(24px, 4.2vh, 40px); font-weight: 700; line-height: 1.2; }
+.intro-steps p { font-size: clamp(18px, 2.9vh, 27px); color: var(--muted); margin-top: 2px; }
+.intro-foot { grid-column: 1 / -1; display: flex; flex-direction: column; gap: clamp(12px, 2.4vh, 26px); padding-top: clamp(12px, 2.4vh, 26px); border-top: 1px solid var(--line); }
+.intro-why { font-size: clamp(20px, 3.2vh, 30px); line-height: 1.4; }
+.intro-why b { color: var(--flame); }
+.intro-actions { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; color: var(--muted); font-size: var(--text-m); }
+.intro-actions .big { min-width: clamp(160px, 16vw, 260px); }
+
+/* ---------- left: the camera and the alphabet ---------- */
+.cam { position: relative; flex: 1; min-height: 120px; background: var(--stone); border-radius: 18px; overflow: hidden; }
+.cam video, .cam canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+.cam-status { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; padding: 24px; background: var(--stone); color: var(--muted); font-size: var(--text-m); }
+.cam-status svg { width: 64px; fill: none; stroke: var(--line); stroke-width: 1.5; }
+.cam-status strong { color: var(--text); font-size: clamp(20px, 3vh, 28px); }
+button.big { height: clamp(54px, 7.4vh, 72px); padding: 0 40px; font-size: clamp(18px, 2.6vh, 23px); }
+body[data-camera="on"] .cam-status { display: none; }
+
+.detected { position: absolute; left: 16px; bottom: 16px; z-index: 2; display: none; align-items: center; gap: 16px; padding: 10px 20px 10px 10px; border-radius: 16px; background: rgba(13, 16, 21, .84); backdrop-filter: blur(6px); }
+body[data-camera] .detected { display: flex; }
+.current { width: clamp(52px, 8vh, 80px); aspect-ratio: 1; display: grid; place-items: center; border-radius: 12px; background: var(--stone-2); color: var(--muted); font-size: clamp(28px, 4.8vh, 48px); font-weight: 700; }
+.current.on { background: var(--flame); color: var(--flame-ink); }
+.detected-read { min-width: clamp(180px, 16vw, 290px); }
+.detected-read p { font-size: var(--text-m); margin-bottom: 8px; }
+.hold, .wait { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
+.hold i, .wait i { display: block; height: 100%; width: 0; background: var(--flame); border-radius: 4px; }
+
+.ref-grid { flex: none; display: grid; grid-template-columns: repeat(13, 1fr); gap: 2px; }
+.ref { height: clamp(50px, 8vh, 88px); padding: 4px 0 3px; background: none; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 2px; }
+.ref:hover:not(:disabled) { background: var(--stone); }
+.ref img { flex: 1; min-height: 0; width: 100%; object-fit: contain; filter: invert(1); opacity: .9; }
+.ref span { font-size: clamp(15px, 2vh, 19px); font-weight: 700; line-height: 1; }
+.ref.on, .ref.on:hover { background: var(--flame); color: var(--flame-ink); }
+.ref.on img { filter: none; opacity: 1; }
+
+/* ---------- right: the Goblet, the verdict, Dumbledore ---------- */
+.stagebox { position: relative; flex: 1; min-height: 140px; container-type: size; }
+.scene { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; opacity: 0; visibility: hidden; transition: opacity .6s, visibility .6s; }
+body:is([data-stage="idle"], [data-stage="name"]) .scene-name,
+body:is([data-stage="considering"], [data-stage="announce"]) .scene-verdict,
+body[data-stage="interrogation"] .scene-dumbledore,
+body[data-stage="ruling"] .scene-ruling { opacity: 1; visibility: visible; }
+
+.goblet { height: 48cqh; aspect-ratio: 240 / 250; flex: none; }
+.goblet svg { width: 100%; height: 100%; overflow: visible; }
+.g-halo { fill: rgba(154, 215, 245, .07); }
+.g-ring { display: none; }
+.g-cup { fill: var(--gold); }
+.g-line { fill: none; stroke: #94763c; stroke-width: 2; }
+.f-outer { fill: #7cc8ee; transition: fill .6s; }
+.f-inner { fill: #e6f6ff; }
+.g-flame { transform-origin: 120px 138px; animation: flicker 2.6s ease-in-out infinite; }
+@keyframes flicker { 0%, 100% { transform: scale(1, 1); } 35% { transform: scale(.97, 1.05) skewX(-1.5deg); } 70% { transform: scale(1.03, .96) skewX(1.5deg); } }
+
+.scene-name h2 { font-family: var(--book); font-weight: 500; font-size: clamp(28px, 11cqh, 60px); line-height: 1.1; margin-top: 2cqh; }
+.scene-name > p { color: var(--muted); font-size: clamp(17px, 4.6cqh, 25px); margin-top: 1cqh; max-width: 26em; }
+
+/* What others spelled and what the Goblet made of it, for the people waiting. */
+.register { position: absolute; top: 0; right: 0; width: clamp(200px, 34cqw, 300px); text-align: left; font-size: var(--text-s); }
+.register-head { display: flex; justify-content: space-between; color: var(--muted); padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+.register li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.register li span, .register li b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.register li span { color: var(--muted); }
+.register li.changed b { color: var(--ember); }
+.register button { height: auto; padding: 8px 0 0; font-size: var(--text-s); text-decoration: underline; }
+
+.scene-verdict .goblet { height: 38cqh; }
+.scene-verdict .f-outer { fill: #ff7a4a; }
+.scene-verdict .f-inner { fill: #ffe2b0; }
+.scene-verdict .g-halo { fill: rgba(255, 122, 74, .09); }
+.scene-verdict .g-flame { animation-duration: .7s; }
+.considering, .chosen { font-family: var(--book); color: var(--muted); font-size: clamp(22px, 7cqh, 36px); margin-top: 3cqh; }
+.slip { margin-top: 2cqh; background: var(--parchment); color: var(--ink); padding: 1.6cqh 5cqw; border-radius: 3px; transform: rotate(-1.2deg); box-shadow: 0 10px 50px rgba(255, 122, 74, .3); }
+.slip-name { font-family: var(--book); font-size: clamp(30px, 14cqh, 76px); letter-spacing: .08em; line-height: 1.1; }
+body[data-stage="considering"] :is(.slip, .chosen) { display: none; }
+body[data-stage="announce"] .considering { display: none; }
+body[data-stage="announce"] .slip { animation: slip-up .7s cubic-bezier(.2, .9, .3, 1.2) both; }
+@keyframes slip-up { from { opacity: 0; transform: translateY(8cqh) rotate(-6deg) scale(.7); } }
+
+/* Dumbledore is light, type and motion. The tier sets all three. */
+.scene-dumbledore { justify-content: stretch; }
+.light-wrap { position: absolute; inset: -6% -4%; overflow: hidden; -webkit-mask-image: radial-gradient(ellipse 62% 66% at 50% 52%, #000 45%, transparent 100%); mask-image: radial-gradient(ellipse 62% 66% at 50% 52%, #000 45%, transparent 100%); }
+.light { position: absolute; left: 50%; bottom: -12%; width: var(--lw); height: var(--lh); transform: translateX(-50%); background: radial-gradient(ellipse at 50% 62%, var(--lc), transparent 68%); filter: blur(10px); transition: width 1s, height 1s, background 1s; }
+.scene-dumbledore[data-tier="1"] { --lw: 38%; --lh: 78%; --lc: rgba(154, 215, 245, .24); }
+.scene-dumbledore[data-tier="2"] { --lw: 58%; --lh: 100%; --lc: rgba(226, 240, 246, .32); }
+.scene-dumbledore[data-tier="3"] { --lw: 86%; --lh: 128%; --lc: rgba(255, 190, 120, .42); }
+.scene-dumbledore[data-tier="4"] { --lw: 140%; --lh: 170%; --lc: rgba(255, 106, 64, .6); }
+.scene-dumbledore[data-tier="4"] .light { animation: glare 1.4s ease-in-out infinite; }
+@keyframes glare { 50% { opacity: .72; } }
+
+.q-area { position: relative; flex: 1; width: 100%; display: grid; place-items: center; padding: 2cqh 4cqw 0; min-height: 0; }
+.question { max-width: 100%; text-wrap: balance; }
+.scene-dumbledore[data-tier="1"] .question { font-family: var(--book); font-size: clamp(26px, 10.5cqh, 54px); line-height: 1.18; }
+.scene-dumbledore[data-tier="2"] .question { font-family: var(--book); font-weight: 600; font-size: clamp(30px, 13cqh, 68px); line-height: 1.12; }
+.scene-dumbledore[data-tier="3"] .question { font-family: var(--ui); font-weight: 700; font-size: clamp(32px, 14cqh, 76px); line-height: 1.06; letter-spacing: -.02em; color: #ffe1bd; }
+.scene-dumbledore[data-tier="4"] .question { font-family: var(--shout); font-size: clamp(40px, min(23cqh, 11.5cqw), 140px); line-height: 1; color: #fff; text-shadow: 0 0 44px rgba(255, 90, 50, .75); }
+
+/* What the machine wrote down, said back flatly whatever tier he is on. */
+.scene-dumbledore .question.echo { font-family: var(--book); font-style: italic; font-weight: 400; font-size: clamp(26px, 10.5cqh, 54px); letter-spacing: 0; color: var(--parchment); text-shadow: none; }
+
+/* The verdict */
+.ruling-pre { color: var(--muted); font-size: clamp(18px, 5cqh, 26px); }
+.scene-ruling h2 { font-family: var(--book); font-weight: 500; font-size: clamp(40px, 17cqh, 96px); line-height: 1.05; margin: 2cqh 0; }
+.scene-ruling[data-result="guilty"] h2 { color: var(--ember); }
+.scene-ruling[data-result="cleared"] h2 { color: var(--flame); }
+.scene-ruling #rulingSub { font-size: clamp(18px, 5cqh, 26px); max-width: 24em; }
+
+/* The one line that never changes, whatever happens above it. */
+.narration { position: relative; flex: none; font-family: var(--book); font-style: italic; font-size: clamp(22px, 7cqh, 36px); color: var(--parchment); padding: 2cqh 0 3cqh; opacity: 0; transition: opacity 1s; }
+.narration.shown { opacity: 1; }
+
+.w { display: inline-block; opacity: 0; animation: var(--word, w-fade) var(--dur, .5s) ease both; animation-delay: calc(var(--i) * var(--gap-t, 100ms)); }
+@keyframes w-fade { to { opacity: 1; } }
+@keyframes w-rise { from { opacity: 0; transform: translateY(.4em); } to { opacity: 1; } }
+@keyframes w-drop { from { opacity: 0; transform: translateY(-.5em); } to { opacity: 1; } }
+@keyframes w-pop { from { opacity: 0; transform: scale(1.6); } to { opacity: 1; } }
+@keyframes w-jab { from { opacity: 0; transform: translateX(-.6em) rotate(-4deg); } to { opacity: 1; } }
+@keyframes w-slam { from { opacity: 0; transform: scale(3); } to { opacity: 1; } }
+
+.r-settle { --word: w-rise; --dur: .6s; --gap-t: 110ms; }
+.r-drift  { --word: w-fade; --dur: .9s; --gap-t: 110ms; }
+.r-lean   { --word: w-rise; --dur: .35s; --gap-t: 75ms; animation: q-lean .8s ease-out; }
+.r-press  { --word: w-drop; --dur: .28s; --gap-t: 75ms; }
+.r-lurch  { --word: w-pop; --dur: .2s; --gap-t: 55ms; animation: q-shake .5s .5s; }
+.r-pace   { --word: w-fade; --dur: .25s; --gap-t: 55ms; animation: q-pace 1.8s ease-in-out; }
+.r-jab    { --word: w-jab; --dur: .22s; --gap-t: 55ms; animation: q-shake .4s .7s; }
+.r-charge { --word: w-fade; --dur: .1s; --gap-t: 45ms; animation: q-charge .6s cubic-bezier(.2, .9, .3, 1.3), q-tremble .13s .6s 22; }
+.r-slam   { --word: w-slam; --dur: .16s; --gap-t: 45ms; animation: q-tremble .13s .5s 22; }
+.r-roar   { --word: w-fade; --dur: .08s; --gap-t: 30ms; animation: q-roar .5s ease-out, q-tremble .13s .5s 22; }
+@keyframes q-lean { from { transform: scale(.92); } }
+@keyframes q-shake { 20% { transform: translateX(-10px); } 40% { transform: translateX(9px); } 60% { transform: translateX(-6px); } 80% { transform: translateX(4px); } }
+@keyframes q-pace { 25% { transform: translateX(-16px); } 75% { transform: translateX(16px); } }
+@keyframes q-charge { from { transform: scale(.4); } }
+@keyframes q-roar { from { transform: scale(1.5) skewX(-6deg); } }
+@keyframes q-tremble { 25% { transform: translate(-3px, 2px); } 75% { transform: translate(3px, -2px); } }
+
+/* ---------- what you have spelled, on a slip of parchment ---------- */
+.entry { flex: none; height: clamp(58px, 8.8vh, 96px); display: flex; align-items: center; padding: 0 clamp(18px, 1.8vw, 32px); background: var(--parchment); color: var(--ink); border-radius: 4px; font-family: var(--book); font-size: clamp(28px, 4.8vh, 50px); overflow: hidden; white-space: nowrap; box-shadow: 0 6px 30px rgba(0, 0, 0, .35); transition: opacity .3s; }
+.placeholder { font-style: italic; font-size: .7em; opacity: .55; }
+.typed { font-weight: 500; letter-spacing: .12em; white-space: pre; }
+.entry s { letter-spacing: .12em; opacity: .5; margin-right: .5em; text-decoration-thickness: 2px; }
+.caret { width: 3px; height: .9em; background: var(--ink); margin-left: 3px; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+body:is([data-stage="idle"], [data-stage="considering"], [data-stage="announce"], [data-stage="ruling"]) .entry { opacity: .35; }
+
+.controls { display: flex; gap: clamp(8px, .8vw, 14px); flex: none; }
+.controls button { font-size: var(--text-m); }
+.controls .primary { flex: 1; }
+
+.under { flex: none; min-height: clamp(30px, 4.8vh, 48px); display: flex; align-items: center; font-size: var(--text-m); line-height: 1.3; color: var(--muted); }
+.face-line b { color: var(--text); }
+.wait-block { display: none; flex: 1; flex-direction: column; gap: 8px; }
+body:is([data-stage="interrogation"], [data-stage="ruling"]) .face-line { display: none; }
+body[data-stage="interrogation"] .wait-block { display: flex; }
+
+/* ---------- step 3: the book and the film ---------- */
+.reveal-head { flex: none; display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+.reveal-head h2 { font-family: var(--book); font-weight: 500; font-size: clamp(26px, 5vh, 52px); line-height: 1.1; }
+.reveal-head p { color: var(--flame); font-size: var(--text-m); font-weight: 700; margin-top: 4px; }
+.reveal-page { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr); gap: clamp(20px, 3vw, 60px); }
+.reveal-page > section { display: flex; flex-direction: column; min-height: 0; border-radius: 6px; padding: clamp(14px, 2.6vh, 36px) clamp(20px, 2.6vw, 48px); }
+.reveal-page h3 { font-size: clamp(22px, 3.4vh, 32px); font-weight: 700; flex: none; }
+.col-head { flex: none; display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 16px; margin-bottom: clamp(8px, 1.8vh, 24px); }
+.col-head p { font-size: var(--text-s); opacity: .7; }
+.col-body { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: clamp(6px, 1.4vh, 18px); scrollbar-color: var(--line) transparent; }
+
+.book { background: var(--parchment); color: var(--ink); box-shadow: 0 10px 50px rgba(0, 0, 0, .4); }
+.book h3 { font-family: var(--book); font-weight: 600; font-size: clamp(26px, 4vh, 38px); }
+.book .col-body { font-family: var(--book); font-size: clamp(22px, 3.8vh, 36px); line-height: 1.3; }
+.book .col-body p + p { text-indent: 1.2em; }
+.book .col-body.plain p { text-indent: 0; }
+
+.film { background: var(--stone); }
+.film .col-body { font-size: var(--text-m); }
+.film .said { color: var(--muted); }
+.film .said b { color: var(--text); }
+.film .note { color: var(--muted); }
+.film .outcome { color: var(--ember); font-weight: 700; }
+.film .heard b { color: var(--ember); }
+.film .lead { font-size: clamp(22px, 3.6vh, 34px); line-height: 1.25; }
+.film .lead b { color: var(--ember); }
+.film .closing { font-family: var(--book); font-size: clamp(28px, 5.4vh, 54px); line-height: 1.3; margin-top: auto; }
+.film-q.t1 { font-family: var(--book); font-size: clamp(22px, 3.6vh, 34px); line-height: 1.2; }
+.film-q.t2 { font-family: var(--book); font-weight: 600; font-size: clamp(24px, 4.2vh, 40px); line-height: 1.15; }
+.film-q.t3 { font-weight: 700; font-size: clamp(26px, 4.6vh, 44px); line-height: 1.08; letter-spacing: -.02em; color: #ffe1bd; }
+.film-q.t4 { font-family: var(--shout); font-size: clamp(32px, 6.4vh, 64px); line-height: 1.02; color: var(--ember); }
+.flag { display: grid; grid-template-columns: clamp(84px, 13vh, 170px) 1fr; gap: 16px; align-items: center; background: var(--stone-2); border-radius: 12px; padding: clamp(8px, 1.3vh, 14px); }
+.flag img, .nosnap { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 8px; }
+.nosnap { background: repeating-linear-gradient(135deg, var(--stone) 0 8px, #20262f 8px 16px); }
+.flag figcaption { display: flex; flex-direction: column; gap: 2px; font-size: var(--text-s); line-height: 1.3; }
+.flag b { font-size: var(--text-m); }
+.flag .read { color: var(--ember); }
+
+.reveal-nav { flex: none; display: flex; align-items: center; justify-content: flex-end; gap: 20px; font-size: var(--text-m); color: var(--muted); }
+.reveal-nav button { min-width: clamp(120px, 12vw, 200px); font-size: var(--text-m); }
+
+/* ---------- dictionary ---------- */
+.dict-head { flex: none; display: flex; align-items: center; gap: 24px; }
+.dict-head h2 { font-family: var(--book); font-weight: 500; font-size: clamp(26px, 5vh, 52px); line-height: 1.1; }
+.dict-panels { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: clamp(20px, 3vw, 60px); }
+.dict-browse { display: flex; flex-direction: column; gap: var(--gap); min-height: 0; }
+.dict-search { display: flex; align-items: center; gap: 14px; flex: none; height: clamp(48px, 6.6vh, 68px); padding: 0 20px; background: var(--stone); border: 2px solid transparent; border-radius: 12px; }
+.dict-search:focus-within { border-color: var(--flame); }
+.dict-search svg { width: 24px; fill: none; stroke: var(--muted); stroke-width: 1.8; stroke-linecap: round; }
+.dict-search input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: var(--text); font: inherit; font-size: var(--text-m); }
+.dict-search input::placeholder { color: var(--muted); }
+.dict-tabs { display: flex; gap: 10px; flex: none; }
+.dict-tabs button { font-size: var(--text-m); }
+.dict-tabs button.on { background: var(--flame); color: var(--flame-ink); }
+
+.dict-grid { flex: 1; min-height: 0; display: grid; gap: clamp(6px, .7vw, 12px); overflow-y: auto; scrollbar-color: var(--line) transparent; }
+.dict-grid.alphabet { grid-template-columns: repeat(7, 1fr); grid-template-rows: repeat(4, minmax(0, 1fr)); }
+.dict-grid.vocabulary { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(6, minmax(0, 1fr)); }
+.dict-grid.face { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, minmax(0, 1fr)); }
+.dict-grid.mixed { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); grid-auto-rows: clamp(64px, 11vh, 110px); align-content: start; }
+.dict-empty { grid-column: 1 / -1; color: var(--muted); font-size: var(--text-m); padding: 20px 0; }
+.dtile { height: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px; min-height: 0; background: var(--stone); border: 2px solid transparent; overflow: hidden; }
+.dtile b { font-size: clamp(22px, 3.6vh, 36px); line-height: 1; }
+.dtile b.word { font-size: var(--text-m); }
+.dtile span { font-size: var(--text-s); font-weight: 400; text-align: center; line-height: 1.15; }
+.dtile img { flex: 1; min-height: 0; width: 100%; object-fit: contain; filter: invert(1); opacity: .85; }
+.dtile .face-art { flex: 1; min-height: 0; max-width: 100%; }
+.dtile.on { border-color: var(--flame); background: var(--stone-2); }
+.face-art { stroke: var(--text); }
+.face-art .mark { stroke: var(--flame); }
+
+.detail { display: flex; flex-direction: column; gap: var(--gap); min-height: 0; background: var(--stone); border-radius: 18px; padding: clamp(16px, 3vh, 34px) clamp(18px, 2.2vw, 40px); }
+.detail-title { display: flex; align-items: baseline; gap: 18px; flex: none; }
+.detail-title b { font-family: var(--book); font-weight: 500; font-size: clamp(40px, 7.4vh, 76px); line-height: 1; }
+.detail-title b.long { font-size: clamp(28px, 4.8vh, 48px); }
+.detail-title span { color: var(--muted); font-size: var(--text-m); }
+.detail-figure { flex: 1; min-height: 80px; display: grid; place-items: center; overflow: hidden; }
+.detail-figure img, .detail-figure .face-art { height: 100%; max-width: 100%; min-height: 0; object-fit: contain; }
+.detail-figure img { filter: invert(1); }
+.watch { text-align: center; color: var(--muted); font-size: var(--text-m); display: flex; flex-direction: column; gap: 16px; align-items: center; }
+.watch a { color: var(--flame-ink); background: var(--flame); border-radius: 12px; padding: 14px 28px; font-weight: 700; text-decoration: none; }
+.detail-text { flex: none; }
+.detail-text h4 { font-size: var(--text-s); font-weight: 700; color: var(--muted); margin-bottom: 2px; }
+.detail-text p { font-size: clamp(18px, 2.8vh, 25px); line-height: 1.35; }
+.detail-text p + h4 { margin-top: clamp(8px, 1.6vh, 18px); }
+.detail-live { flex: none; font-size: var(--text-m); color: var(--muted); background: var(--stone-2); border-radius: 10px; padding: 10px 16px; }
+.detail-live.match { color: var(--flame-ink); background: var(--flame); font-weight: 700; }
+.detail-ref { flex: none; font-size: var(--text-s); color: var(--muted); }
+
+/* ---------- small screens and reduced motion ---------- */
+@media (max-width: 1100px) {
+  .steps li:not(.on) { display: none; }
+  .steps li.on::before { display: none; }
+}
+@media (max-width: 900px) {
+  body { height: auto; min-height: 100vh; overflow: auto; }
+  body[data-view="station"] .station-view, body[data-view="intro"] .intro-view, .reveal-page, .dict-panels { grid-template-columns: 1fr; }
+  .cam { flex: none; aspect-ratio: 4 / 3; }
+  .stagebox { flex: none; height: 340px; }
+  .ref-grid { grid-template-columns: repeat(9, 1fr); }
+  .controls { flex-wrap: wrap; }
+  .title { font-size: 22px; }
+  .dict-grid { overflow: visible; }
+  .dict-grid.alphabet, .dict-grid.face, .dict-grid.vocabulary { grid-template-rows: none; grid-auto-rows: 88px; }
+  .detail-figure { height: 220px; flex: none; }
+  .col-body { overflow: visible; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .w { opacity: 1; animation: none; }
+  .question, .g-flame, .light, .caret, .slip { animation: none !important; }
+}
+
+/* In the dictionary the progress steps and the dictionary button would only distract. */
+body[data-view="dictionary"] :is(.steps, #dictBtn) { visibility: hidden; }
+body[data-view="intro"] .steps { visibility: hidden; }
+/* A new visitor is already on the welcome, so the button that reopens it would be noise. */
+body[data-view="intro"]:not([data-help="open"]) #helpBtn { visibility: hidden; }
+body[data-help="open"] :is(#beginDemoBtn, .intro-actions span) { display: none; }
+body[data-help="open"] #helpBtn { color: var(--text); font-weight: 700; }
